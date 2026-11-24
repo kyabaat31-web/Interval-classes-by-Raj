@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="manifest" href="/manifest.json" />
+  <link rel="manifest" href="./manifest.json" />
   <meta name="theme-color" content="#064e3b" />
-  <link rel="icon" type="image/png" href="/icons/icon-192.png" />
+  <link rel="icon" type="image/png" href="./icon-192.png" />
   <title>INTERVAL CLASSES – SMART CAMPUS</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
@@ -13,6 +13,9 @@
   <style>
     body { font-family: 'Inter', 'Noto Sans Devanagari', system-ui, sans-serif; }
   </style>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-900 antialiased">
   <div id="app"></div>
@@ -124,6 +127,56 @@
       auditLogs: []
     };
 
+    const FB_CONFIG = {
+      apiKey: "AIzaSyCJdG7t8eE_7Tn0oLs3YcPKoM_apoT6VGI",
+      authDomain: "interval-classes-by-raj.firebaseapp.com",
+      projectId: "interval-classes-by-raj",
+      storageBucket: "interval-classes-by-raj.firebasestorage.app",
+      messagingSenderId: "325517685440",
+      appId: "1:325517685440:web:69c044b1dec523aa207325"
+    };
+    let fbDb = null;
+    try {
+      if (window.firebase && !firebase.apps.length) firebase.initializeApp(FB_CONFIG);
+      fbDb = firebase.firestore();
+    } catch (e) { console.warn("Firebase init:", e); }
+
+    async function syncToFirebase() {
+      if (!fbDb) return;
+      try {
+        await fbDb.collection("campus").doc("main").set({
+          students: state.students,
+          installments: state.installments,
+          payments: state.payments,
+          reminders: state.reminders,
+          attendance: state.attendance,
+          notices: state.notices,
+          branches: state.branches,
+          courses: state.courses,
+          faculty: state.faculty,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      } catch (e) { console.warn("Firestore sync pending rules/auth:", e.message); }
+    }
+
+    if (fbDb) {
+      fbDb.collection("campus").doc("main").onSnapshot((doc) => {
+        if (doc.exists) {
+          const d = doc.data();
+          if (d.students) state.students = d.students;
+          if (d.installments) state.installments = d.installments;
+          if (d.payments) state.payments = d.payments;
+          if (d.reminders) state.reminders = d.reminders;
+          if (d.attendance) state.attendance = d.attendance;
+          if (d.notices) state.notices = d.notices;
+          if (d.branches) state.branches = d.branches;
+          if (d.courses) state.courses = d.courses;
+          if (d.faculty) state.faculty = d.faculty;
+          render();
+        }
+      }, () => {});
+    }
+
     function showToast(msg) {
       const el = document.getElementById("toast");
       el.textContent = msg;
@@ -137,6 +190,7 @@
       return { total: stu.totalFee, paid, remaining };
     }
 
+    const _origRender = render;
     function markInstallmentPaid(instId) {
       const inst = state.installments.find(i => i.id === instId);
       if (!inst || inst.status === "Paid") return;
@@ -165,6 +219,7 @@
         date: todayStr
       });
       state.auditLogs.unshift(`MARKED PAID: ${stu?.fullName} (${inst.title}) ₹${rem}. Pending reminders cancelled.`);
+      syncToFirebase();
       showToast(`Marked PAID (₹${rem}). Pending reminders cancelled & receipt ${receiptNo} generated.`);
       render();
     }
@@ -193,6 +248,7 @@
         else state.attendance.push(rec);
       });
       state.attEditUnlocked = false;
+      syncToFirebase();
       showToast(`Saved attendance for ${batchStudents.length} students on ${state.attDate}.`);
       render();
     }
@@ -245,6 +301,7 @@
         paused: false
       });
       state.showEnrollModal = false;
+      syncToFirebase();
       showToast(`Enrolled ${newStu.fullName} (${admNo}).`);
       render();
     }
@@ -259,6 +316,7 @@
         date: todayStr
       });
       e.target.reset();
+      syncToFirebase();
       showToast("Push notification dispatched & notice published.");
       render();
     }
@@ -561,6 +619,6 @@
 
     render();
   </script>
-  <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js").catch(()=>{});}</script>
+  <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("./sw.js").catch(()=>{});}</script>
 </body>
 </html>

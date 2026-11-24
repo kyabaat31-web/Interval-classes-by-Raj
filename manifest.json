@@ -1,22 +1,22 @@
 {
-  "name": "INTERVAL CLASSES – SMART CAMPUS",
+  "name": "INTERVAL CLASSES \u2013 SMART CAMPUS",
   "short_name": "Interval Campus",
-  "description": "LEARN • GROW • INSPIRE — Complete Coaching Institute Management App for Interval Classes",
-  "start_url": "/",
+  "description": "LEARN \u2022 GROW \u2022 INSPIRE \u2014 Coaching Institute Management App",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#0b0f17",
   "theme_color": "#064e3b",
-  "categories": ["education", "productivity"],
   "icons": [
     {
-      "src": "/icons/icon-192.png",
+      "src": "./icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icons/icon-512.png",
+      "src": "./icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
